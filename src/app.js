@@ -13,6 +13,7 @@ import cors from 'cors'
 import cookieParser from "cookie-parser";
 
 import { helmetOptions, morganOptions, rateLimitOptions, corsOptions } from './utils/middlewareOptions.js';
+import { globalErrorHandler } from './middlewares/errorhandler.middleware.js';
 
 const app = express();
 
@@ -56,12 +57,12 @@ app.use(RegExp('/$'), (req, res, next) => {
     res.status(200).send({
         status: "success",
         message: "Welcome to Skillcave API",
-    })
+    });
 });
 
 
 // 8. Global Error Handlers  
-
+app.use(globalErrorHandler);
 
 // 9. 404 Global Path Handler
 app.use((req, res, next) => {
