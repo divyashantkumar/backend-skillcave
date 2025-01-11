@@ -147,15 +147,13 @@ const userSchema = new Schema(
         certificates: {
             type: [Schema.Types.ObjectId],
             ref: 'Certificate',
-            default: [],
-            validate: {
-                validator: function (certificates) {
-                    if (certificates.length > 3) {
-                        return false;
-                    }
-                    return true;
-                }
-            }
+            default: []
+        },
+        passwordResetToken: String,
+        passwordResetExpires: Date,
+        lastActive: {
+            type: String,
+            default: Date.now
         }
     },
     {
@@ -178,6 +176,29 @@ userSchema.pre('save', async function (next) {
     }
     next();
 });
+
+// Compare password
+userSchema.methods.comparePassword = async function (incomingPassword) {
+    return await bcrypt.compare(incomingPassword, this.password);
+};
+
+
+// Get Reset Password Token
+userSchema.methods.getResetPasswordToken = function () {
+    const resetToken = crypto.randomBytes(20).toString('hex'); // Generate a random token
+    this.passwordResetToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex'); // Hash the token
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // Set the expiration time to 10 minutes
+    return resetToken;
+}
+
+// Update Last active time
+userSchema.methods.updateLastActiveTime = function () {
+    this.lastActive = Date.now();
+    return this.lastActive({ validateBeforeSave: false }); //  { validateBeforeSave: false } -> This will not validate the document before saving it to the database 
+}
 
 const User = model('User', userSchema);
 export default User;
