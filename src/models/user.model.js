@@ -55,6 +55,7 @@ const userSchema = new Schema(
             type: String,
             unique: true,
             required: true,
+            lowercase: true,
             match: [/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address'],
             maxlength: [254, 'Email must not exceed 100 characters'],
             trim: true,
@@ -96,11 +97,13 @@ const userSchema = new Schema(
             trim: true,
             default: Date.now
         },
-        qualification: {
-            type: Schema.Types.ObjectId,
-            ref: 'Qualification',
-            default: null
-        },
+        qualifications: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Qualification',
+                default: null
+            }
+        ],
         contact_address: {
             type: String,
             trim: true,
@@ -134,21 +137,20 @@ const userSchema = new Schema(
             trim: true,
             default: ""
         },
-        idenification_type: {
-            type: String,
-            trim: true,
-            default: ""
-        },
-        idenification_verified: {
-            type: Boolean,
-            trim: true,
-            default: false
-        },
-        certificates: {
-            type: [Schema.Types.ObjectId],
-            ref: 'Certificate',
-            default: []
-        },
+        idenifications: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Identification',
+                default: null
+            }
+        ],
+        certificates: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Certificate',
+                default: []
+            }
+        ],
         passwordResetToken: String,
         passwordResetExpires: Date,
         lastActive: {
