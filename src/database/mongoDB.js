@@ -47,7 +47,7 @@ class DatabaseConnnection {
     async connect() {
         try {
             if (!MONGODB_URI) {
-                throw new CustomError('MONGODB_URI is not defined', 500);
+                throw new CustomError(500, 'MONGODB_URI is not defined');
             }
 
             const connectionOptions = {

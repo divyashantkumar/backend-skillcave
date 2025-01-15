@@ -1,9 +1,9 @@
 //express-async-error lets the application throw error instead forcing to use next() function in async functions
 import 'express-async-errors';
 import boolParser from 'express-query-boolean';
-
+import { config } from 'dotenv';
+config();
 import express from "express";
-import logger from "./utils/logger.js"
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import hpp from "hpp";
@@ -11,9 +11,15 @@ import helmet from "helmet";
 import path from "path";
 import cors from 'cors'
 import cookieParser from "cookie-parser";
-
-import { helmetOptions, morganOptions, rateLimitOptions, corsOptions } from './utils/middlewareOptions.js';
 import { globalErrorHandler } from './middlewares/errorhandler.middleware.js';
+import { 
+    morganOptions, 
+    rateLimitOptions, 
+    helmetOptions, 
+    hppOptions, 
+    corsOptions,
+} from './utils/middlewareOptions.js';
+import routers from './routes/index.routes.js'
 
 const app = express();
 
@@ -22,13 +28,13 @@ const app = express();
 const morganFormat = ":method :url :status :response-time ms";
 
 // 1. Logging Middleware
-app.use(morgan(morganFormat, morganOptions));
+if(process.env.NODE_ENV === 'development') app.use(morgan(morganFormat, morganOptions));
 
 
 // 2. Application Security Middleware
 app.use('/api', rateLimit(rateLimitOptions)); // Apply rate limiter only to API requests
 app.use(helmet(helmetOptions));
-app.use(hpp(helmetOptions));
+app.use(hpp(hppOptions));
 
 
 // 3. CORS configuration
@@ -49,7 +55,7 @@ app.use(express.static('public'));
 
 
 // 6. Routes
-
+app.use("/api/v1/user", routers.userRouter);
 
 
 // 7. Home Page Handler
