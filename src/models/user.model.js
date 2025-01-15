@@ -23,6 +23,32 @@
 
 import { Schema, model } from 'mongoose';
 
+export function generatePassword(length = 12) {
+    // Define the character sets
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const specialCharacters = '@$!%*?&';
+
+    // Ensure the password has at least one character from each category
+    const password = [
+        lowercase[Math.floor(Math.random() * lowercase.length)],
+        uppercase[Math.floor(Math.random() * uppercase.length)],
+        numbers[Math.floor(Math.random() * numbers.length)],
+        specialCharacters[Math.floor(Math.random() * specialCharacters.length)]
+    ];
+
+    // Combine all the characters into one string
+    const allCharacters = lowercase + uppercase + numbers + specialCharacters;
+
+    // Fill the remaining characters to reach the desired length
+    for (let i = password.length; i < length; i++) {
+        password.push(allCharacters[Math.floor(Math.random() * allCharacters.length)]);
+    }
+
+    // Shuffle the password array to ensure random distribution
+    return password.sort(() => Math.random() - 0.5).join('');
+}
 
 const userSchema = new Schema(
     {
@@ -50,29 +76,51 @@ const userSchema = new Schema(
             match: [/^\+?\d{10,15}$/, 'Phone number must be a valid phone number'],
             trim: true
         },
-        // 64characters@total254.chars
+        phone_verified: {
+            type: Boolean,
+            default: false
+        },
         email: {
             type: String,
             unique: true,
             required: true,
             lowercase: true,
             match: [/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address'],
-            maxlength: [254, 'Email must not exceed 100 characters'],
+            maxlength: [254, 'Email must not exceed 100 characters'], // 64characters@total254.chars
             trim: true,
+        },
+        email_verified: {
+            type: Boolean,
+            default: false
+        },
+        otp: {
+            type: Number,
+            default: null,
+            validate: {
+                validator: function (value) {
+                    return value === null || (value >= 1000 && value <= 9999);
+                }
+            }
         },
         password: {
             type: String,
-            required: [true, 'Password is required'],
+            trim: true,
+            match: [/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'],
+            default: () => generatePassword(),
             minlength: [8, 'Password must be at least 8 characters long'],
             maxlength: [100, 'Password must not exceed 100 characters'],
-            trim: true,
             select: false,
-            match: [/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'],
+            // required: [true, 'Password is required'],
         },
         avatar: {
             type: String,
             trim: true,
             default: ""
+        },
+        resume: {
+            type: String,
+            trim: true,
+            default: "",
         },
         role: {
             type: String,
@@ -85,7 +133,7 @@ const userSchema = new Schema(
             min: [0, 'Age must be at least 0'],
             max: [150, 'Age must not exceed 150'],
             trim: true,
-            default: 0
+            default: null
         },
         gender: {
             type: String,
@@ -96,7 +144,12 @@ const userSchema = new Schema(
         dob: {
             type: Date,
             trim: true,
-            default: Date.now
+            default: null
+        },
+        bio: {
+            type: String,
+            trim: true,
+            default: null
         },
         qualifications: [
             {
@@ -119,24 +172,24 @@ const userSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'City',
             trim: true,
-            default: ""
+            default: null
         },
         state: {
             type: Schema.Types.ObjectId,
             ref: 'State',
             trim: true,
-            default: ""
+            default: null
         },
         country: {
             type: Schema.Types.ObjectId,
             ref: 'Country',
             trim: true,
-            default: ""
+            default: null
         },
         pin_code: {
             type: String,
             trim: true,
-            default: ""
+            default: null
         },
         idenifications: [
             {
@@ -200,7 +253,7 @@ userSchema.methods.getResetPasswordToken = function () {
 // Update Last active time
 userSchema.methods.updateLastActiveTime = function () {
     this.lastActive = Date.now();
-    return this.lastActive({ validateBeforeSave: false }); //  { validateBeforeSave: false } -> This will not validate the document before saving it to the database 
+    return this.save({ validateBeforeSave: false }); //  { validateBeforeSave: false } -> This will not validate the document before saving it to the database 
 }
 
 const User = model('User', userSchema);
