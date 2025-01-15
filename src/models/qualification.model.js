@@ -24,8 +24,10 @@ const qualificationSchema = new Schema(
         },
         type: {
             type: String,
+            lowercase: true,
+            index: true,
             enum: {
-                values: ['deploma', 'graduation', 'postGraduation', 'doctorate', 'other'],
+                values: ['diploma', 'graduation', 'post-graduation', 'doctorate', "drop-out",'other'],
                 message: '{VALUE} is not a valid qualification type'
             },
             required: true
