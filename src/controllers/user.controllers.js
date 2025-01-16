@@ -5,6 +5,8 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { generateTokens, cookieOptions } from '../utils/token.js';
 import Qualification from '../models/qualification.model.js';
 import { uploadFileToCloud } from '../utils/fileUploadtoCloud.js';
+import { createUserService, findUserService, getUserProfileService } from '../services/user.services.js';
+import { createQualificationService } from '../services/qualification.services.js';
 
 
 export const registerUser = asyncHandler(async (req, res) => {
@@ -20,7 +22,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
     // TODO: Validate the request body parameters GLobally
 
-    const user = await User.findOne({ email: email.toLowerCase() }).exec();
+    const user = await findUserService({ email: email.toLowerCase() });
 
     if (user?.email) {
         return res
@@ -49,7 +51,7 @@ export const registerUser = asyncHandler(async (req, res) => {
         resumeUrl = await uploadFileToCloud(req.files.resume[0]);
     }
 
-    const newUser = await User.create({
+    const newUser = await createUserService({
         first_name,
         last_name,
         email: email.toLowerCase(),
@@ -68,10 +70,10 @@ export const registerUser = asyncHandler(async (req, res) => {
             );
     }
 
-    const qualificationDoc = await Qualification.create({
+    const qualificationDoc = await createQualificationService({
         user_id: newUser._id,
         type: qualification.toLowerCase(),
-    })
+    });
 
     newUser.qualifications.push(qualificationDoc._id);
     await newUser.save();
@@ -89,7 +91,7 @@ export const registerUser = asyncHandler(async (req, res) => {
         })
         .json(
             new ApiResponse(200, "User created successfully", {
-                newUser,
+                user: newUser,
                 accessToken,
                 refreshToken,
             })
@@ -100,7 +102,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 export const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password').exec();
+    const user = await findUserService(email, '+password');
 
     if (!user) {
         throw new CustomError(404, "User not found");
@@ -135,22 +137,9 @@ export const loginUser = asyncHandler(async (req, res) => {
 
 export const getUserProfile = asyncHandler(async (req, res) => {
     const { _id } = req?.user;
-    const user = await User.findById(_id)
-        .populate({
-            path: "qualifications",
-            select: "type completion_status percentage start_date end_date",
-            populate: {
-                path: "institute",
-                select: "name type"
-            }
-        })
-        .populate({
-            path: "certificates",
-            select: "name category issued_date expiry_date certificate_url"
-        })
-        .exec();
+    const user = await getUserProfileService({ _id });
 
-    if(!user) {
+    if (!user) {
         return res
             .status(404)
             .json(
@@ -173,18 +162,17 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 export const deleteUserProfile = asyncHandler(async (req, res) => {
     const { _id } = req?.user;
 
-    // delete user
-    const user = await User.findByIdAndDelete(_id).exec();
-    // delete qualifications of user 
-    const qualifications = await Qualification.deleteMany({ user_id: _id }).exec();
+    const user = await findUserService({ _id });
 
-    if(!user) {
-        return res    
+    if (!user) {
+        return res
             .status(404)
             .json(
                 new ApiResponse(404, "User not found")
             );
     }
+
+    await user.deleteOne().exec();
 
     return res
         .status(200)
@@ -192,5 +180,7 @@ export const deleteUserProfile = asyncHandler(async (req, res) => {
             new ApiResponse(200, "User profile deleted successfully")
         );
 });
+
+
 
 
