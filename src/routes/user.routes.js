@@ -1,6 +1,12 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
-import { deleteUserProfile, getUserProfile, registerUser } from "../controllers/user.controllers.js";
+import { 
+    deleteUserProfile, 
+    getUserProfile, 
+    logoutUser, 
+    registerUser, 
+    updateUserProfile
+} from "../controllers/user.controllers.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
 
 const router = Router();
@@ -29,6 +35,10 @@ router.route('/login').post();
 router.route('/').get(isAuthenticated, getUserProfile);
 
 router.route('/').delete(isAuthenticated, deleteUserProfile);
+
+router.route('/').patch(isAuthenticated, updateUserProfile);
+
+router.route('/logout').post(isAuthenticated, logoutUser);
 
 export default router;
 

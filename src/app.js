@@ -24,6 +24,11 @@ import routers from './routes/index.routes.js'
 const app = express();
 
 
+import Certificate from './models/certificate.model.js';
+import Identification from './models/identification.model.js';
+import Institute from './models/institute.model.js';
+import Qualification from './models/qualification.model.js';
+
 // Custom Morgan Format for logging requests and responses in the console 
 const morganFormat = ":method :url :status :response-time ms";
 

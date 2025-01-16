@@ -1,9 +1,7 @@
 import { ApiResponse } from '../utils/ApiResponse.js';
 import CustomError from '../errors/custom.error.js';
-import User from '../models/user.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { generateTokens, cookieOptions } from '../utils/token.js';
-import Qualification from '../models/qualification.model.js';
 import { uploadFileToCloud } from '../utils/fileUploadtoCloud.js';
 import { createUserService, findUserService, getUserProfileService } from '../services/user.services.js';
 import { createQualificationService } from '../services/qualification.services.js';
@@ -182,5 +180,82 @@ export const deleteUserProfile = asyncHandler(async (req, res) => {
 });
 
 
+export const sendEmailOtp = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes from now in milliseconds
+
+    const user = await findUserService({ email });
+
+    if (!user) {
+        return res
+            .status(404)
+            .json(
+                new ApiResponse(404, "User not found")
+            );
+    }
+
+    user.otp = otp;
+    user.otpExpiry = otpExpiry;
+    await user.save();
+
+    // Send email with OTP
+    // await sendEmail(email, otp);
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "OTP sent successfully")
+        );
+});
+
+
+export const verifyEmailOtp = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+
+    const user = await findUserService({ email });
+
+    if (!user) {
+        return res
+            .status(404)
+            .json(
+                new ApiResponse(404, "User not found")
+            );
+    }
+
+    if (user.otp !== otp || user.otpExpiry < Date.now()) {
+        return res
+            .status(400)
+            .json(
+                new ApiResponse(400, "Invalid OTP")
+            );
+    }
+
+    user.otp = null;
+    user.otpExpiry = null;
+    await user.save();
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "OTP verified successfully")
+        )
+});
+
+
+export const logoutUser = asyncHandler(async (req, res) => {
+    return res
+        .status(200)
+        .cookie("accessToken", "", { maxAge: 0 })
+        .cookie("refreshToken", "", { maxAge: 0 })
+        .json(
+            new ApiResponse(200, "User logged out successfully")
+        );
+});
+
+
+export const updateUserProfile = asyncHandler(async (req, res) => {
+    
+})
 
 
