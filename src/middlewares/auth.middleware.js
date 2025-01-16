@@ -1,6 +1,6 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { User } from "../models/user.model.js";
+import User from "../models/user.model.js";
 import {
     verifyAccessTokenValidity,
     verifyRefreshTokenValidity,
@@ -14,7 +14,11 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
     const { accessToken, refreshToken } = req.cookies;
 
     if (!accessToken && !refreshToken) {
-        return res.status(403).json(new ApiResponse(403, "Bad Request! Access token and refresh token not found in request cookies"));
+        return res
+            .status(403)
+            .json(
+                new ApiResponse(403, "Bad Request! Access token and refresh token not found in request cookies")
+            );
     }
 
     try {
@@ -38,7 +42,11 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
             // If refresh token is valid, update access token and refresh token
             const user = await User.findById(decodedRefreshToken._id);
             if (!user) {
-                return res.status(404).json(new ApiResponse(404, "User not found"));
+                return res
+                    .status(404)
+                    .json(
+                        new ApiResponse(404, "User not found")
+                    );
             }
 
             const payload = {
@@ -54,12 +62,14 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
                 .cookie("refreshToken", newRefreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
         } else {
             req.user = decodedAccessToken;
-
         }
     } catch (error) {
-        return res.status(401).json(new ApiResponse(401, "Unauthorized"));
+        return res
+            .status(401)
+            .json(
+                new ApiResponse(401, "Unauthorized")
+            );
     }
-
     next();
 })
 

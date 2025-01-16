@@ -78,7 +78,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     await newUser.updateLastActiveTime();
 
 
-    const { accessToken, refreshToken } = generateTokens(user);
+    const { accessToken, refreshToken } = generateTokens(newUser);
 
     return res
         .status(200)
@@ -133,5 +133,64 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 
+export const getUserProfile = asyncHandler(async (req, res) => {
+    const { _id } = req?.user;
+    const user = await User.findById(_id)
+        .populate({
+            path: "qualifications",
+            select: "type completion_status percentage start_date end_date",
+            populate: {
+                path: "institute",
+                select: "name type"
+            }
+        })
+        .populate({
+            path: "certificates",
+            select: "name category issued_date expiry_date certificate_url"
+        })
+        .exec();
+
+    if(!user) {
+        return res
+            .status(404)
+            .json(
+                new ApiResponse(404, "User not found")
+            );
+    }
+
+    await user.updateLastActiveTime();
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "User profile fetched successfully", {
+                user,
+            })
+        );
+})
+
+
+export const deleteUserProfile = asyncHandler(async (req, res) => {
+    const { _id } = req?.user;
+
+    // delete user
+    const user = await User.findByIdAndDelete(_id).exec();
+    // delete qualifications of user 
+    const qualifications = await Qualification.deleteMany({ user_id: _id }).exec();
+
+    if(!user) {
+        return res    
+            .status(404)
+            .json(
+                new ApiResponse(404, "User not found")
+            );
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "User profile deleted successfully")
+        );
+});
 
 
