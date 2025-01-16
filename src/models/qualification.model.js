@@ -81,8 +81,5 @@ const qualificationSchema = new Schema(
 );
 
 
-qualificationSchema.index({ user_id: 1 }, { unique: true });
-
-
 const Qualification = model('Qualification', qualificationSchema);
 export default Qualification;
