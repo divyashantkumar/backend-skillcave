@@ -233,6 +233,34 @@ userSchema.pre('save', async function (next) {
     next();
 });
 
+// Pre-delete hook
+userSchema.pre("deleteOne", { document: true, query: false }, async function (next) {
+    try {
+        // Ensure `this._id` is available and points to the correct document
+        const userId = this._id;
+
+        // Ensure models are registered correctly in your Mongoose schema
+        await this.model('Qualification').deleteMany({ user_id: userId });
+        await this.model('Identification').deleteMany({ user_id: userId });
+        await this.model('Certificate').deleteMany({ user_id: userId });
+
+        // Log successful deletion of related documents
+        console.log(`User with ID ${userId} deleted! Related qualifications, identifications, and certificates removed.`);
+    } catch (error) {
+        // Log any errors encountered during the deletion of related documents
+        console.error("Error deleting related documents:", error);
+    }
+    // Ensure next() is called to proceed with the deleteOne operation
+    next();
+})
+
+// Post-delete hook
+userSchema.post("deleteOne", { document: true, query: false }, async function () {
+    console.log(this);
+    console.log("User deleted! send email to user");
+})
+
+
 // Compare password
 userSchema.methods.comparePassword = async function (incomingPassword) {
     return await bcrypt.compare(incomingPassword, this.password);
