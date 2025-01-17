@@ -6,3 +6,4 @@ export const createQualificationService = async (data) => {
 
     return qualification ? qualification : null;
 };
+

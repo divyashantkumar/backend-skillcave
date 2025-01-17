@@ -61,7 +61,7 @@ app.use(express.static('public'));
 
 // 6. Routes
 app.use("/api/v1/user", routers.userRouter);
-
+app.use("/api/v1/question", routers.questionRouter);
 
 // 7. Home Page Handler
 app.use(RegExp('/$'), (req, res, next) => {

@@ -80,12 +80,16 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
 // restrictTo(['instructor']),
 // restrictTo(['student']) etc...
 export const restrictTo = (roles) => {
+    if (!Array.isArray(roles)) {
+        throw new Error("roles must be an array");
+    }
+    
     return asyncHandler(async (req, res, next) => {
-        // roles is an array ['admin', 'instructor']
-        if (!roles.includes(req.user.role)) {
+        // roles is an array, ex: ['admin', 'instructor']
+        if (!roles.includes(req?.user?.role)) {
             throw new CustomError(
                 403,
-                "You do not have permission to perform this action",
+                `Only users with roles [${roles.join(", ")}] are allowed to perform this action`,
             );
         }
         next();

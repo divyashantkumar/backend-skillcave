@@ -4,7 +4,7 @@ export const asyncHandler = (asyncCallbackFn) => {
         try {
            await asyncCallbackFn(req, res, next);
         } catch (error) {
-            console.error(error);
+            throw error;
         }
     }
 }

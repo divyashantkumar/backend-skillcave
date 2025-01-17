@@ -24,7 +24,6 @@ export const handleMongoError = (err) => {
 export const globalErrorHandler = (err, req, res, next) => {
     const statusCode = err.statusCode || 500;
     const errorMessage = err.message || 'Something went wrong!';
-
     if (err instanceof CustomError) {
         const e = new CustomError(statusCode, errorMessage, err?.errors);
         return res

@@ -124,7 +124,7 @@ const userSchema = new Schema(
         },
         role: {
             type: String,
-            enum: ['user', 'admin'],
+            enum: ['user', 'instructor', 'admin'],
             default: 'user',
             trim: true
         },
@@ -243,6 +243,7 @@ userSchema.pre("deleteOne", { document: true, query: false }, async function (ne
         await this.model('Qualification').deleteMany({ user_id: userId });
         await this.model('Identification').deleteMany({ user_id: userId });
         await this.model('Certificate').deleteMany({ user_id: userId });
+        await this.model('TestResult').deleteMany({ user_id: userId });
 
         // Log successful deletion of related documents
         console.log(`User with ID ${userId} deleted! Related qualifications, identifications, and certificates removed.`);

@@ -16,10 +16,10 @@ const questionSchema = new Schema(
     {
         category: {
             type: String,
-            // enum: {
-            //     values: ['coding', 'apti', 'isometric'],
-            //     message: '{VALUE} is not a valid question category'
-            // },
+            enum: {
+                values: ['coding', 'aptitude', 'isometric'],
+                message: '{VALUE} is not a valid question category'
+            },
             trim: true,
             required: [true, 'Question category is required'],
         },
@@ -38,19 +38,31 @@ const questionSchema = new Schema(
             trim: true,
             required: [true, 'Question is required'],
         },
-        options: {
-            type: [String],
-            trim: true,
-            required: [true, 'Question options are required'],
-        },
-        has_coding_snippet: {
-            type: Boolean,
-            default: false
-        },
+        options: [
+            {
+                option: {
+                    type: String,
+                    trim: true,
+                },
+                options_type: {
+                    type: String,
+                    enum: {
+                        values: ["text", "code", "image", "video"],
+                        message: '{VALUE} is not a valid option\'s type'
+                    },
+                    default: "text"
+                },
+                option_score : {
+                    type: Number,
+                    min: 0,
+                    default: 0
+                }
+            }
+        ],
         correct_answer: {
             type: String,
             trim: true,
-            required: [true, 'Question correct answer is required'],
+            required: [false, 'Question correct answer is required'],
         }
     },
     {
