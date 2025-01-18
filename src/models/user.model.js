@@ -67,7 +67,6 @@ const userSchema = new Schema(
             maxlength: [50, 'Last name must not exceed 50 characters'],
             match: [/^[a-zA-Z]+$/, 'Last name can only contain letters'],
             trim: true,
-            default: '',
         },
         phone: {
             type: String,
